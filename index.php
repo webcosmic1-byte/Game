@@ -144,7 +144,10 @@ $scores = json_decode(file_get_contents($json_file), true);
                     <div id="countdown" class="text-6xl font-mono font-black text-red-600 drop-shadow-[0_0_15px_rgba(220,38,38,0.3)]">20</div>
                 </div>
 
-                <canvas id="paint-canvas" width="800" height="450" class="w-full h-auto mb-10 border-4 border-black"></canvas>
+                <canvas id="canvas" width="800" height="400" 
+        style="position: relative; z-index: 10; touch-action: none;" 
+        class="w-full h-auto mb-6"></canvas>
+
 
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <button onclick="initGame()" class="bg-cyan-600 p-5 rounded-3xl font-black text-black btn-action text-xs shadow-xl shadow-cyan-600/20">Start Round</button>
