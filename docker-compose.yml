@@ -1,13 +1,10 @@
 version: '3.8'
 
 services:
-  arcade-app:
+  ai-arcade:
     build: .
-    container_name: ai-arcade-engine
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
-      - .:/var/www/html/
-    environment:
-      - ADMIN_PIN=7785
+      - .:/var/www/html
     restart: always
