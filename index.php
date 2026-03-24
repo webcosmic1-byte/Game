@@ -222,68 +222,129 @@ $scores = json_decode(file_get_contents($json_file), true);
 </footer>
 
 
-    <script>
-        const canvas = document.getElementById('paint-canvas'), ctx = canvas.getContext('2d');
-        let isDrawing = false, gameActive = false, timer = 20, timerRef, isMuted = false;
+<script>
+    const canvas = document.getElementById('paint-canvas'), ctx = canvas.getContext('2d');
+    let isDrawing = false, gameActive = false, timer = 20, timerRef, isMuted = false;
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSfx(freq) {
-            if (isMuted) return;
+    // 🏆 MULTIPLE GAME OBJECTS (Har baar naya challenge)
+    const targets = ["CIRCLE", "SQUARE", "TRIANGLE", "HEART", "HOUSE", "SMILEY", "TREE", "STAR", "CLOUD", "APPLE", "FISH", "MOON"];
+    let currentTarget = "CIRCLE";
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSfx(freq) {
+        if (isMuted) return;
+        try {
             const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
             osc.frequency.value = freq; gain.gain.value = 0.05;
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        }
+        } catch(e) { /* Audio context safety */ }
+    }
 
-        function saveUser() {
-            const name = document.getElementById('uname-input').value;
-            if (!name) return alert("Enter a name!");
-            fetch('', { method: 'POST', body: new URLSearchParams({set_user: name}) }).then(() => location.reload());
-        }
-
-        canvas.onmousedown = (e) => { isDrawing = true; ctx.beginPath(); playSfx(440); };
-        canvas.onmouseup = () => isDrawing = false;
-        canvas.onmousemove = (e) => {
-            if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            ctx.lineWidth = 15; ctx.lineCap = 'round'; ctx.strokeStyle = '#020617';
-            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top); ctx.stroke();
+    // 📱 POSITION HELPER (Mobile aur PC dono ke liye)
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        // Agar touch event hai toh touches[0] use karega, warna mouse clientX
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        // Canvas scaling logic taaki jahan touch ho wahi line bane
+        return {
+            x: (clientX - rect.left) * (canvas.width / rect.width),
+            y: (clientY - rect.top) * (canvas.height / rect.height)
         };
+    }
 
-        function clearArt() { ctx.clearRect(0, 0, canvas.width, canvas.height); playSfx(200); }
+    // 🎨 DRAWING FUNCTIONS
+    function startDraw(e) {
+        if(!gameActive) return;
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        playSfx(440);
+        // Phone par screen scroll hone se rokta hai
+        if(e.type === 'touchstart') e.preventDefault(); 
+    }
 
-        function initGame() {
-            gameActive = true; timer = 20; clearArt();
-            clearInterval(timerRef);
-            timerRef = setInterval(() => {
-                timer--; document.getElementById('countdown').innerText = timer;
-                if (timer <= 0) { clearInterval(timerRef); gameActive = false; alert("Time Over! Try again."); location.reload(); }
-            }, 1000);
-        }
+    function drawMove(e) {
+        if (!isDrawing || !gameActive) return;
+        const pos = getPos(e);
+        ctx.lineWidth = 15;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#020617'; // Dark Ink Color
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        if(e.type === 'touchmove') e.preventDefault();
+    }
 
-        function sendAI() {
-            if (!gameActive) return alert("Start game first!");
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22d3ee', '#ffffff'] });
-            playSfx(1000);
-            fetch('', { method: 'POST', body: new URLSearchParams({save_xp: 500}) })
-            .then(() => setTimeout(() => location.reload(), 1500));
-        }
+    function stopDraw() { isDrawing = false; }
 
-        function switchTheme() {
-            const html = document.documentElement;
-            html.setAttribute('data-theme', html.getAttribute('data-theme') === 'cyber' ? 'pink' : 'cyber');
-            playSfx(800);
-        }
+    // 🔌 EVENT LISTENERS (Mouse + Touch Merge)
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', drawMove);
+    window.addEventListener('mouseup', stopDraw);
 
-        function muteToggle() {
-            isMuted = !isMuted;
-            document.getElementById('audio-btn').innerText = isMuted ? "🔇 Audio: Off" : "🔈 Audio: On";
-        }
+    canvas.addEventListener('touchstart', startDraw, {passive: false});
+    canvas.addEventListener('touchmove', drawMove, {passive: false});
+    canvas.addEventListener('touchend', stopDraw);
 
-        function viralShare() {
-            window.open(`https://api.whatsapp.com/send?text=I am playing AI Arcade! Can you beat my score? Play here: ${window.location.href}`);
-        }
-    </script>
+    function saveUser() {
+        const name = document.getElementById('uname-input').value;
+        if (!name) return alert("Enter a name!");
+        fetch('', { method: 'POST', body: new URLSearchParams({set_user: name}) }).then(() => location.reload());
+    }
+
+    function clearArt() { 
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        playSfx(200); 
+    }
+
+    function initGame() {
+        gameActive = true; 
+        timer = 20; 
+        clearArt();
+        
+        // Har baar random target select hoga
+        currentTarget = targets[Math.floor(Math.random() * targets.length)];
+        document.getElementById('target-word').innerText = currentTarget;
+        
+        clearInterval(timerRef);
+        timerRef = setInterval(() => {
+            timer--; 
+            document.getElementById('countdown').innerText = timer;
+            if (timer <= 0) { 
+                clearInterval(timerRef); 
+                gameActive = false; 
+                alert("Time Over! You were drawing: " + currentTarget); 
+                location.reload(); 
+            }
+        }, 1000);
+    }
+
+    function sendAI() {
+        if (!gameActive) return alert("Pehle game start karo!");
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22d3ee', '#ffffff'] });
+        playSfx(1000);
+        fetch('', { method: 'POST', body: new URLSearchParams({save_xp: 500}) })
+        .then(() => setTimeout(() => location.reload(), 1500));
+    }
+
+    function switchTheme() {
+        const html = document.documentElement;
+        html.setAttribute('data-theme', html.getAttribute('data-theme') === 'cyber' ? 'pink' : 'cyber');
+        playSfx(800);
+    }
+
+    function muteToggle() {
+        isMuted = !isMuted;
+        document.getElementById('audio-btn').innerText = isMuted ? "🔇 Audio: Off" : "🔈 Audio: On";
+    }
+
+    function viralShare() {
+        window.open(`https://api.whatsapp.com/send?text=I'm drawing ${currentTarget} on AI Arcade! Beat my score: ${window.location.href}`);
+    }
+</script>
     <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
 </body>
 </html>
