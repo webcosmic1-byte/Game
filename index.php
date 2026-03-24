@@ -187,10 +187,37 @@ $scores = json_decode(file_get_contents($json_file), true);
         </main>
     </div>
 
-    <footer class="mt-20 py-12 border-t border-white/5 text-center">
-        <p class="text-slate-500 text-xs tracking-widest font-bold">CUSTOMER ID: 7785154755 | PUB-ID: 1247605845741495</p>
-        <p class="text-slate-700 text-[10px] mt-2">&copy; 2026 NEURAL ARCADE NETWORK. ALL RIGHTS RESERVED.</p>
-    </footer>
+    <footer class="mt-20 py-12 border-t border-white/5 bg-black/20 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+        
+        <div class="flex gap-6 items-center order-2 md:order-1">
+            <a href="privacy.php" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-cyan-400 transition-all flex items-center gap-2">
+                <span class="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span>
+                Privacy Policy
+            </a>
+            <span class="text-slate-800">|</span>
+            <a href="admin.php" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-red-500 transition-all">
+                Admin Console
+            </a>
+        </div>
+
+        <div class="order-1 md:order-2 text-center">
+            <p class="text-slate-700 text-[9px] uppercase tracking-[0.6em] mb-1">Neural Network Node</p>
+            <p class="text-white font-mono text-xs opacity-80">ID: 7785154755</p>
+        </div>
+
+        <div class="order-3 text-right hidden md:block">
+            <p class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">
+                Authorized Publisher: <span class="text-slate-400">pub-1247605845741495</span>
+            </p>
+        </div>
+    </div>
+    
+    <div class="mt-8 text-center opacity-20">
+        <p class="text-[8px] uppercase tracking-[1em] text-white">&copy; 2026 AI ARCADE GLOBAL ENGINE</p>
+    </div>
+</footer>
+
 
     <script>
         const canvas = document.getElementById('paint-canvas'), ctx = canvas.getContext('2d');
